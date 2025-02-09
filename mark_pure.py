@@ -1,0 +1,54 @@
+# 该脚本实现划分未标注的纯态dataset为训练集目录的功能
+
+import os
+import shutil
+import random
+
+
+
+# 定义类别和 class_id
+categories = {
+    "冰": 2,
+    "积水": 0,
+    "潮湿": 0,
+    "雪": 1
+}
+
+# 原始数据目录
+base_dirs = {
+    "冰": r"D:\Program Files\dataset\纯态\冰",
+    "积水": r"D:\Program Files\dataset\纯态\积水",
+    "潮湿": r"D:\Program Files\dataset\纯态\潮湿",
+    "雪": r"D:\Program Files\dataset\纯态\雪"
+}
+
+# 目标存放路径
+dataset_dir = r"D:\Program Files\road_snow\training_set" #dataset绝对路径
+img_dir = os.path.join(dataset_dir, "images")
+label_dir = os.path.join(dataset_dir, "labels")
+
+# 创建目录
+for path in [img_dir, label_dir]:
+    os.makedirs(path, exist_ok=True)
+
+# 遍历所有类别的图片
+for category, dir_path in base_dirs.items():
+    class_id = categories[category]
+    all_images = [f for f in os.listdir(dir_path) if f.endswith(('.jpg', '.png', '.jpeg', '.JPG', '.PNG', '.JPEG'))]
+
+    # 处理训练集
+    for filename in all_images:
+        src_img_path = os.path.join(dir_path, filename)
+        dst_img_path = os.path.join(img_dir, filename)
+
+        # 复制图片
+        shutil.copy(src_img_path, dst_img_path)
+
+        # 生成标签
+        label_filename = os.path.splitext(filename)[0] + ".txt"
+        label_path = os.path.join(label_dir, label_filename)
+        with open(label_path, "w") as f:
+            f.write(f"{class_id} 0.5 0.5 1.0 1.0\n")
+
+
+print("纯态dataset划分完成！")
