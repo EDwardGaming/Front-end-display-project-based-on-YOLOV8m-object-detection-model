@@ -56,8 +56,6 @@ def predict_yolov8(input_path, file):
         print(f"Error in predict_yolov8: {str(e)}")
         return None
 
-
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
