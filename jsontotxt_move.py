@@ -5,7 +5,7 @@ import random
 import shutil
 
 # 设置路径
-image_dir = r"D:\Program Files\dataset\PNG\12.02"  # 原始图片目录
+image_dir = r"D:\dataset\json_dataset"  # 原始图片目录
 label_output_dir = r"D:\Program Files\road_snow\training_set\labels"
 image_output_dir = r"D:\Program Files\road_snow\training_set\images"
 os.makedirs(label_output_dir, exist_ok=True)
@@ -61,17 +61,19 @@ def save_data(img_file, labels):
 
 # 获取所有图片文件
 image_paths = []
-for img_file in os.listdir(image_dir):
-    for i in suffix_file:
-        if img_file.endswith(i):
-            json_file = os.path.join(image_dir, img_file.replace(".PNG", ".json").replace(".JPG", ".json").replace(".jpeg", ".json").replace(".JPEG", ".json").replace(".png", ".json").replace(".jpg", ".json"))
-            if os.path.exists(json_file):#如果存在对应的json则操作
-                # 假设图片分辨率为 2400x1600，可以根据实际情况调整
-                img_width, img_height = 2400, 1600
-                labels = convert_to_yolo(json_file, img_width, img_height)
-                save_data(os.path.join(image_dir, img_file), labels)
-                image_paths.append(os.path.join(image_output_dir, img_file))
-        break
+dir_name_lis = os.listdir(image_dir)
+for dir_name in dir_name_lis:
+    for img_file in os.listdir(os.path.join(image_dir, dir_name)):
+        for i in suffix_file:
+            if img_file.endswith(i):
+                json_file = os.path.join(image_dir, dir_name, img_file.replace(".PNG", ".json").replace(".JPG", ".json").replace(".jpeg", ".json").replace(".JPEG", ".json").replace(".png", ".json").replace(".jpg", ".json"))
+                if os.path.exists(json_file):#如果存在对应的json则操作
+                    # 假设图片分辨率为 2400x1600，可以根据实际情况调整
+                    img_width, img_height = 2400, 1600
+                    labels = convert_to_yolo(json_file, img_width, img_height)
+                    save_data(os.path.join(image_dir, dir_name, img_file), labels)
+                    image_paths.append(os.path.join(image_output_dir, img_file))
+                    break
 
 '''
 # 手动划分训练集和验证集
@@ -92,4 +94,5 @@ for img_file in train_imgs:
 for img_file in val_imgs:
     shutil.move(img_file, os.path.join(val_dir, os.path.basename(img_file)))
 '''
+
 print("dataset划分完成！")
