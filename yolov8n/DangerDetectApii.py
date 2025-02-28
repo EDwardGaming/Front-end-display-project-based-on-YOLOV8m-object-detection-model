@@ -7,9 +7,6 @@ import numpy as np
 class DangerDetector:
     """路面危险评估API核心类(精确面积计算版)"""
 
-
-
-
     def __init__(self, model_path: str, conf_threshold: float = 0.5):
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
