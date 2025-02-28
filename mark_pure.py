@@ -1,4 +1,4 @@
-# 该脚本实现划分未标注的纯态dataset为训练集目录的功能
+# 该脚本实现划分未标注dataset为训练集目录的功能
 
 import os
 import shutil
@@ -16,10 +16,10 @@ categories = {
 
 # 原始数据目录
 base_dirs = {
-    "冰": r"D:\Program Files\dataset\纯态\冰",
-    "积水": r"D:\Program Files\dataset\纯态\积水",
-    "潮湿": r"D:\Program Files\dataset\纯态\潮湿",
-    "雪": r"D:\Program Files\dataset\纯态\雪"
+    "冰": r"D:\dataset\pure_dataset\冰",
+    "积水": r"D:\dataset\pure_dataset\积水",
+    "潮湿": r"D:\dataset\pure_dataset\潮湿",
+    "雪": r"D:\dataset\pure_dataset\雪"
 }
 
 # 目标存放路径
@@ -50,5 +50,4 @@ for category, dir_path in base_dirs.items():
         with open(label_path, "w") as f:
             f.write(f"{class_id} 0.5 0.5 1.0 1.0\n")
 
-
-print("纯态dataset划分完成！")
+print("dataset划分完成！")

@@ -56,7 +56,6 @@ class DangerDetector:
                 elif cls == "water":
                     water_area += area
                 covered_areas.append({"class": cls, "geometry": current_box})
-
         # 计算危险值
         total_pixels = image_width * image_height
         danger_value = (ice_area + snow_area * 0.8 + water_area * 0.6) / total_pixels
