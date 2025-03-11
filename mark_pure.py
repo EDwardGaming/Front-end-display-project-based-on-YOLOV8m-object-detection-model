@@ -8,22 +8,18 @@ import random
 
 # 定义类别和 class_id
 categories = {
-    "冰": 2,
-    "积水": 0,
-    "潮湿": 0,
-    "雪": 1
+    "冰": 1,
+    "雪": 0
 }
 
 # 原始数据目录
 base_dirs = {
-    "冰": r"D:\dataset\pure_dataset\冰",
-    "积水": r"D:\dataset\pure_dataset\积水",
-    "潮湿": r"D:\dataset\pure_dataset\潮湿",
-    "雪": r"D:\dataset\pure_dataset\雪"
+    "冰": r"E:\education\dataset\pure_dataset\冰",
+    "雪": r"E:\education\dataset\pure_dataset\雪"
 }
 
 # 目标存放路径
-dataset_dir = r"D:\Program Files\road_snow\training_set" #dataset绝对路径
+dataset_dir = r"E:\education\road_snow\training_set" #dataset绝对路径
 img_dir = os.path.join(dataset_dir, "images")
 label_dir = os.path.join(dataset_dir, "labels")
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>YOLOv11m Object Detection</title>
+</head>
+<body>
+    <div class="container">
+        <h1>YOLOv11m Object Detection</h1>
+        <form id="upload-form">
+            <input type="file" id="file" name="file" accept="image/*,video/*" required>
+            <button type="submit">Upload and Predict</button>
+        </form>
+        <div id="result">
+            <h2>Prediction Result:</h2>
+            <img id="result-image" src="" alt="Result will be displayed here" style="max-width: 100%; display: none;">
+            <video id="result-video" controls style="max-width: 100%; display: none;"></video>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const resultImage = document.getElementById('result-image');
+        const resultVideo = document.getElementById('result-video');
+    
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+    
+            if (!file) return alert('Please select a file.');
+    
+            const formData = new FormData();
+            formData.append('file', file);
+    
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+    
+                const result = await response.json();
+    
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+    
+                // 添加时间戳避免缓存问题
+                const timestamp = new Date().getTime();
+                const resultPath = `${result.result}?t=${timestamp}`;
+    
+                if (file.type.startsWith('image/')) {
+                    resultImage.src = resultPath;
+                    resultImage.style.display = 'block';
+                    resultVideo.style.display = 'none';
+                    resultVideo.src = ''; // 清除视频源
+                } else if (file.type.startsWith('video/')) {
+                    resultVideo.src = resultPath;
+                    resultVideo.style.display = 'block';
+                    resultImage.style.display = 'none';
+                    resultImage.src = ''; // 清除图片源
+                    resultVideo.load(); // 重新加载视频
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Prediction failed: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

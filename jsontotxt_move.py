@@ -5,15 +5,15 @@ import random
 import shutil
 
 # 设置路径
-image_dir = r"D:\dataset\json_dataset"  # 原始图片目录
-label_output_dir = r"D:\Program Files\road_snow\training_set\labels"
-image_output_dir = r"D:\Program Files\road_snow\training_set\images"
+image_dir = r"E:\education\dataset\json_dataset"  # 原始图片目录
+label_output_dir = r"training_set\labels"
+image_output_dir = r"training_set\images"
 os.makedirs(label_output_dir, exist_ok=True)
 os.makedirs(image_output_dir, exist_ok=True)
 suffix_file = [".PNG",".JPG",".JPEG",".jpg",".png",".jpeg"]
 
 # 定义类别
-classes = ['water', 'snow', 'ice']
+classes = ['snow', 'ice']
 
 # 解析 JSON 并转换为 YOLO 格式
 def convert_to_yolo(json_file, img_width, img_height):

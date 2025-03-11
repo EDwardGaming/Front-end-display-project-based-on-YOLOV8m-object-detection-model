@@ -1,0 +1,21 @@
+path: E:\education\road_snow\training_set
+
+# 显式指定数据集路径
+train: E:\education\road_snow\training_set\images  # **预先划分好的训练集**
+val: E:\education\road_snow\training_set\images     # **预先划分好的验证集**
+
+nc: 2
+names: ['snow', 'ice']
+
+# 优化增强参数
+augmentations:
+  mosaic: 1.0        # **全程开启mosaic**
+  mixup: 0.5         # **增强混合比例**
+  copy_paste: 0.5    # **提升小目标复制概率**
+  scale: [0.5, 1.5]  # **新增随机缩放**
+  shear: 0.3         # **新增剪切变换**
+  perspective: 0.001 # **新增透视变换**
+
+# 优化检测参数
+conf_thres: 0.25     # **平衡召回与精度**
+iou_thres: 0.45      # **适应雪地目标重叠**
