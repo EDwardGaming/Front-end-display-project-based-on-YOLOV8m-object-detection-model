@@ -10,7 +10,7 @@ class DangerDetector:
     def __init__(self, model_path: str, conf_threshold: float = 0.5):
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
-        self.class_map = {0: "water", 1: "snow", 2: "ice"}
+        self.class_map = {0: "snow", 1: "ice"}
         self.priority = {"ice": 3, "snow": 2, "water": 1}
         self.messages = {
             "ice": "⚠️ 路面存在结冰区域，请保持车距并使用防滑链！",

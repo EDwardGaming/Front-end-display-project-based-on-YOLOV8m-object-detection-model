@@ -40,11 +40,10 @@ D:.
 
 训练决定舍弃数据集中背景和干燥这两大类，只选择moist、snow和ice这三类。目的是只为识别冰雪，增强模型识别的针对性。
 
-| 类型  | 危险指数 |
-| ----- | -------- |
-| moist | 低度危险 |
-| snow  | 中度危险 |
-| ice   | 高度危险 |
+| 类型 | 危险指数 |
+| ---- | -------- |
+| snow | 中度危险 |
+| ice  | 高度危险 |
 
 后续想增加`water `类型,指代更多的水，就是更危险的路面。
 
@@ -55,37 +54,102 @@ D:.
 ### 数据集目录结构
 
 ```bash
-PS D:\dataset> tree
-卷 原神 的文件夹 PATH 列表
-卷序列号为 0EDC-5FA0
-D:.
-├─my_png #自己找的一些用于测试的图片
-├─PNG 
-│  ├─12.01
-│  └─12.02 #图片和标注图片的json文件
-├─video #视频
-└─纯态 
-    ├─labels
-    ├─冰
-    ├─干燥
-    ├─潮湿
-    ├─积水
-    └─雪
+PS E:\education\dataset> tree
+卷 龙版 的文件夹 PATH 列表
+卷序列号为 64E0-4EF7
+E:.
+├─12.01
+├─json_dataset #图片和标注图片的json文件
+│  ├─12.02
+│  ├─157
+│  ├─158
+│  ├─159
+│  ├─160
+│  ├─161
+│  ├─162
+│  ├─163
+│  ├─164
+│  ├─165
+│  ├─166
+│  ├─167
+│  ├─168
+│  ├─169
+│  ├─170
+│  ├─171
+│  ├─172
+│  ├─173
+│  ├─174
+│  ├─175
+│  ├─176
+│  ├─177
+│  ├─178
+│  ├─179
+│  ├─180
+│  ├─181
+│  ├─182
+│  ├─183
+│  ├─184
+│  ├─185
+│  ├─186
+│  ├─187
+│  ├─188
+│  ├─189
+│  ├─190
+│  ├─191
+│  ├─192
+│  ├─193
+│  ├─194
+│  ├─195
+│  ├─196
+│  ├─197
+│  ├─198
+│  ├─199
+│  ├─200
+│  ├─201
+│  ├─202
+│  ├─203
+│  ├─204
+│  ├─205
+│  ├─206
+│  ├─208
+│  └─209
+├─pure_dataset 
+│  ├─labels
+│  ├─冰
+│  ├─干燥
+│  ├─潮湿
+│  ├─积水
+│  └─雪
+└─text_dataset 
+    ├─测试集
+    ├─测试集_自己拍的图片 #自己找的一些用于测试的图片
+    └─视频测试集 #视频
 ```
 
 ### `yolov8m.yaml`配置
 
 ```yaml
-train: D:\Program Files\road_snow\images\train
-val: D:\Program Files\road_snow\images\val
-test: D:\Program Files\road_snow\images\test
+path: E:\education\road_snow\training_set
 
-# 自动划分比例（训练集:验证集）
-split: [0.8, 0.2]
+# 显式指定数据集路径
+train: E:\education\road_snow\training_set\images  # **预先划分好的训练集**
+val: E:\education\road_snow\training_set\images     # **预先划分好的验证集**
 
-nc: 3  # 类别数量
-names: ['water','snow','ice']  # 替换为你的类别名称
+nc: 2
+names: ['snow', 'ice']
 
+# 优化增强参数
+augmentations:
+  mosaic: 1.0        # **全程开启mosaic**
+  mixup: 0.5         # **增强混合比例**
+  copy_paste: 0.5    # **提升小目标复制概率**
+  scale: [0.5, 1.5]  # **新增随机缩放**
+  shear: 0.3         # **新增剪切变换**
+  perspective: 0.001 # **新增透视变换**
+
+# 优化检测参数
+conf_thres: 0.25     # **平衡召回与精度**
+iou_thres: 0.45      # **适应雪地目标重叠**
 ```
 
 
@@ -302,38 +366,53 @@ print("数据集划分完成！")
 ```python
 import torch
 from ultralytics import YOLO
+import torch.multiprocessing as mp
 
 # 加载预训练的 YOLOv8 模型
-model = YOLO(r"D:\Program Files\road_snow\yolov8n\yolov8m.pt")  # 这里可以根据你的需求替换为其他版本的 YOLO 模型
+model = YOLO(r"E:\education\road_snow\yolov11m\yolo11m.pt")  # 这里可以根据你的需求替换为其他版本的 YOLO 模型
 
 # 配置训练参数
 train_args = {
-    'data': 'yolov8m.yaml',  # 数据集配置文件路径
-    'epochs': 300,  # 训练的轮数
-    'batch': 16,  # 每个批次的大小
+    'data': 'yolov11m.yaml',  # 数据集配置文件路径
+    'epochs': 100,  # 训练的轮数
+    'batch': 24,  # 每个批次的大小，适当调整（16到32之间）
     'imgsz': 640,  # 输入图像的大小
-    'device': 'cuda',  # 使用 GPU 训练，如果没有 GPU 可以改为 'cpu'
+    'device': '0',  # 使用 GPU 训练，如果没有 GPU 可以改为 'cpu'
     'project': 'runs/detect',  # 存储训练结果的目录
     'name': 'train3',  # 训练结果保存的子目录
     'save': True,  # 是否保存模型
     'save_period': -1,  # 每隔多少轮保存一次模型
     'verbose': True,  # 是否打印详细日志
     'workers': 0,  # 数据加载器的工作线程数
-    'optimizer': 'AdamW',  # 使用自动优化器（Adam 或 SGD）
-    'lr0': 0.003,  # 初始学习率
-    'lrf': 0.2,  # 学习率衰减率
-    'warmup_epochs': 7,  # 预热的轮数
-    'box': 7.5,  # 训练的框回归损失权重
-    'cls': 0.5,  # 类别损失权重
-    'dfl': 1.5,  # 关键点损失权重
+    'optimizer': 'AdamW',  # 这里选择自动，还可以选择 AdamW 优化器
+    
+    'lr0': 0.001,  # 初始学习率，适当降低初始学习率，增加学习率衰减率。
+    'lrf': 0.01,  # 学习率衰减率，更激进，加快收敛。
+    
+    'warmup_epochs': 3,  # 预热的轮数，适当降低预热时间
+    'box': 5.0,  # 训练的框回归损失权重，越低越平衡归框任务。
+    'cls': 1.0,  # 类别损失权重，越高越强化分类任务
+    'dfl': 2.0,  # 关键点损失权重
     'pose': 12.0,  # 姿态估计损失权重
-    'nbs': 64,  # 批次大小
-    'freeze' : 10,  # 冻结训练的层数
-    'split': "0.8 0.2 "  # 训练集和验证集的比例
+    'nbs': 64,  # 批次大小（此参数不会影响实际训练，但用于计算资源）
+    'weight_decay' : 0.01,  # 权重衰减
+    
+    'split': "0.8 0.2",  # 训练集和验证集的比例
+    
+    'warmup_epochs': 3,
+    'label_smoothing': 0.05,  # 标签平滑
+       
+    'close_mosaic': 15, # 最后15epoch关闭mosaic（稳定收敛）
+    'augment': True,
+    
+    'patience': 10,  # 早停策略的耐心值，连续10个epoch验证集性能无提升则停止训练
+
+    'persist': True,  # **保持预处理状态加速训练**
+    'amp': True,      # **启用自动混合精度**
 }
+
 # 打印训练参数
 print(train_args)
-
 
 # 训练模型
 train_results = model.train(**train_args)
@@ -342,117 +421,7 @@ train_results = model.train(**train_args)
 print(train_results)
 ```
 
-### 训练参数打印
 
-```bash
-engine\trainer: 
-task=detect
-mode=train
-model=D:\Program Files\road_snow\yolov8n\yolov8m.pt
-data=yolov8m.yaml
-epochs=300
-time=None
-patience=100
-batch=16
-imgsz=640
-save=True
-save_period=-1
-cache=False
-device=cuda
-workers=0
-project=runs/detect
-name=train32
-exist_ok=False
-pretrained=True
-optimizer=AdamW
-verbose=True
-seed=0
-deterministic=True
-single_cls=False
-rect=False
-cos_lr=False
-close_mosaic=10
-resume=False
-amp=True
-fraction=1.0
-profile=False
-freeze=10
-multi_scale=False
-overlap_mask=True
-mask_ratio=4
-dropout=0.0
-val=True
-split=0.8 0.2
-save_json=False
-save_hybrid=False
-conf=None
-iou=0.7
-max_det=300
-half=False
-dnn=False
-plots=True
-source=None
-vid_stride=1
-stream_buffer=False
-visualize=False
-augment=False
-agnostic_nms=False
-classes=None
-retina_masks=False
-embed=None
-show=False
-save_frames=False
-save_txt=False
-save_conf=False
-save_crop=False
-show_labels=True
-show_conf=True
-show_boxes=True
-line_width=None
-format=torchscript
-keras=False
-optimize=False
-int8=False
-dynamic=False
-simplify=True
-opset=None
-workspace=None
-nms=False
-lr0=0.003
-lrf=0.2
-momentum=0.937
-weight_decay=0.0005
-warmup_epochs=7
-warmup_momentum=0.8
-warmup_bias_lr=0.1
-box=7.5
-cls=0.5
-dfl=1.5
-pose=12.0
-kobj=1.0
-nbs=64
-hsv_h=0.015
-hsv_s=0.7
-hsv_v=0.4
-degrees=0.0
-translate=0.1
-scale=0.5
-shear=0.0
-perspective=0.0
-flipud=0.0
-fliplr=0.5
-bgr=0.0
-mosaic=1.0
-mixup=0.0
-copy_paste=0.0
-copy_paste_mode=flip
-auto_augment=randaugment
-erasing=0.4
-crop_fraction=1.0
-cfg=None
-tracker=botsort.yaml
-save_dir=runs\detect\train32
-```
 
 
 
@@ -492,17 +461,12 @@ from typing import Tuple
 import numpy as np
 
 class DangerDetector:
-    """路面危险评估API核心类"""
+    """路面危险评估API核心类(精确面积计算版)"""
 
     def __init__(self, model_path: str, conf_threshold: float = 0.5):
-        """
-        初始化检测器
-        :param model_path: YOLOv8模型文件路径
-        :param conf_threshold: 置信度阈值 (默认0.5)
-        """
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
-        self.class_map = {0: "water", 1: "snow", 2: "ice"}
+        self.class_map = {0: "snow", 1: "ice"}
         self.priority = {"ice": 3, "snow": 2, "water": 1}
         self.messages = {
             "ice": "⚠️ 路面存在结冰区域，请保持车距并使用防滑链！",
@@ -512,59 +476,114 @@ class DangerDetector:
         }
 
     def _calculate_danger_level(self, results, image_width: int, image_height: int) -> Tuple[str, str]:
-        """内部危险评估算法"""
+        """优化后的危险评估算法"""
         detections = []
-
         if results.boxes:
             boxes = results.boxes.cpu().numpy()
             for i in range(len(boxes.xyxy)):
                 x1, y1, x2, y2 = boxes.xyxy[i]
+                conf = boxes.conf[i]
                 cls_id = int(boxes.cls[i])
-                detections.append((self.class_map[cls_id], x1, y1, x2, y2))
+                area = (x2 - x1) * (y2 - y1)
+                detections.append({
+                    "class": self.class_map[cls_id],
+                    "coords": (x1, y1, x2, y2),
+                    "confidence": conf,
+                    "area": area
+                })
 
-        # 按优先级排序
-        sorted_detections = sorted(detections, key=lambda x: -self.priority.get(x[0], 0))
+        # 优化排序逻辑
+        sorted_detections = sorted(
+            detections,
+            key=lambda x: (
+                -self.priority.get(x["class"], 0),
+                -x["area"],
+                -x["confidence"]
+            )
+        )
 
-        # 计算覆盖面积
+        # 精确面积计算逻辑
         covered_areas = []
         ice_area = snow_area = water_area = 0
 
         for detection in sorted_detections:
-            cls, x1, y1, x2, y2 = detection
+            cls = detection["class"]
+            x1, y1, x2, y2 = detection["coords"]
             current_box = box(x1, y1, x2, y2)
+            current_polygon = current_box
 
-            # 检查重叠
-            if not any(current_box.intersects(existing["geometry"]) for existing in covered_areas):
-                area = current_box.area
+            # 计算有效未覆盖区域
+            valid_area = current_polygon
+            for existing in covered_areas:
+                if valid_area.intersects(existing["geometry"]):
+                    valid_area = valid_area.difference(existing["geometry"])
+            
+            effective_area = valid_area.area
+
+            if effective_area > 0:
+                # 扣除被覆盖区域的面积
+                for existing in covered_areas:
+                    if current_polygon.intersects(existing["geometry"]):
+                        overlap = existing["geometry"].intersection(current_polygon)
+                        if overlap.area > 0:
+                            if existing["class"] == "ice":
+                                ice_area -= overlap.area
+                            elif existing["class"] == "snow":
+                                snow_area -= overlap.area
+                            elif existing["class"] == "water":
+                                water_area -= overlap.area
+
+                # 添加新区域面积
                 if cls == "ice":
-                    ice_area += area
+                    ice_area += effective_area
                 elif cls == "snow":
-                    snow_area += area
+                    snow_area += effective_area
                 elif cls == "water":
-                    water_area += area
-                covered_areas.append({"class": cls, "geometry": current_box})
+                    water_area += effective_area
 
-        # 计算危险值
+                # 合并覆盖区域
+                new_geometry = current_polygon
+                for existing in covered_areas:
+                    if new_geometry.intersects(existing["geometry"]):
+                        new_geometry = new_geometry.union(existing["geometry"])
+                covered_areas.append({
+                    "class": cls,
+                    "geometry": new_geometry,
+                    "confidence": detection["confidence"]
+                })
+
+        # 后续逻辑保持不变
         total_pixels = image_width * image_height
-        danger_value = (ice_area + snow_area * 0.8 + water_area * 0.6) / total_pixels
+        weighted_ice = ice_area 
+        weighted_snow = snow_area 
+        weighted_water = water_area 
+        danger_value = (weighted_ice + weighted_snow + weighted_water) / total_pixels
+        
+        thresholds = {
+            "high": 0.7 ,
+            "medium": 0.4 ,
+            "low": 0.2 
+        }
 
-        # 判定危险等级
-        if danger_value >= 0.8:
+        if danger_value >= thresholds["high"]:
             danger_level = "高度危险"
-        elif danger_value >= 0.5:
+        elif danger_value >= thresholds["medium"]:
             danger_level = "中度危险"
-        elif danger_value >= 0.3:
+        elif danger_value >= thresholds["low"]:
             danger_level = "轻度危险"
         else:
             danger_level = "安全"
 
-        # 生成提示信息
-        max_class = max(["ice", "snow", "water"],
-                        key=lambda x: ice_area if x == "ice" else snow_area if x == "snow" else water_area)
-        message = self.messages[max_class] if danger_level != "安全" else self.messages["safe"]
-
+        dominant_class = max(
+            ["ice", "snow", "water"],
+            key=lambda x: (ice_area, snow_area, water_area)[["ice", "snow", "water"].index(x)]
+        )
+        message = self.messages[dominant_class] if danger_level != "安全" else self.messages["safe"]
+        
         return danger_level, message
 
+    # 保持原有predict方法不变
+    
     def predict_from_image(self, image_path: str) -> dict:
         """
         从图片文件路径进行预测
@@ -616,20 +635,6 @@ class DangerDetector:
             "results": results
         }
 
-
-# 示例用法
-if __name__ == "__main__":
-    # 初始化检测器
-    detector = DangerDetector(
-        model_path=r"D:\Program Files\road_snow\yolov8n\runs\detect\train310\weights\best.pt",
-        conf_threshold=0.5
-    )
-
-    # 示例预测
-    test_image = input("输入图片路径: ")
-    result = detector.predict_from_image(test_image)
-    print(f"危险等级: {result['danger_level']}")
-    print(f"提示信息: {result['message']}")
 ```
 
 使用示例：
@@ -639,16 +644,15 @@ if __name__ == "__main__":
 ```python
 from DangerDetectApi import DangerDetector
 
+model_path = r"E:\education\road_snow\yolov11m\runs\detect\train38\weights\best.pt" # 模型路径
+conf_threshold = 0.5 # 置信度阈值
+
 # 初始化检测器
-detector = DangerDetector(
-    model_path=r"D:\Program Files\road_snow\yolov8n\runs\detect\train310\weights\best.pt",
-    conf_threshold=0.5
-)
+detector = DangerDetector(model_path,conf_threshold)
 
 # 从文件路径预测
-result = detector.predict_from_image(r"D:\dataset\pure_dataset\冰\IMG_5893.JPG")
+result = detector.predict_from_image(r"E:\education\dataset\text_dataset\测试集_自己拍的图片\ce5d5374c7789e445506ca01511f09d3.mp4")
 print(result['danger_level'], result['message'])
-
 ```
 
 ### 效果图
@@ -710,11 +714,11 @@ button:hover {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/styles.css">
-    <title>YOLOv8 Object Detection</title>
+    <title>YOLOv11m Object Detection</title>
 </head>
 <body>
     <div class="container">
-        <h1>YOLOv8 Object Detection</h1>
+        <h1>YOLOv11m Object Detection</h1>
         <form id="upload-form">
             <input type="file" id="file" name="file" accept="image/*,video/*" required>
             <button type="submit">Upload and Predict</button>
@@ -808,9 +812,10 @@ def index():
     return render_template('index.html')
 
 
-def predict_yolov8(input_path, file):
+def predict_yolov11x(input_path, file):
     try:
-        model = YOLO(r'D:\Program Files\road_snow\yolov8n\runs\detect\train310\weights\best.pt')
+        # 使用 yolov11x 模型路径
+        model = YOLO(r'E:\education\road_snow\yolov11m\runs\detect\train38\weights\best.pt')
         results = model.predict(
             source=input_path,
             project=app.config['RESULTS_FOLDER'],
@@ -839,13 +844,12 @@ def predict_yolov8(input_path, file):
             os.remove(avi_path)  # 删除原 .avi 文件
             result_filename = result_filename_mp4
 
-        print(f"Result saved to: {result_dir}\\{result_filename}")
+        print(f"Result saved to: {result_dir}\{result_filename}")
         return f'/static/results/{os.path.basename(result_dir)}/{result_filename}'
 
     except Exception as e:
-        print(f"Error in predict_yolov8: {str(e)}")
+        print(f"Error in predict_yolov11x: {str(e)}")
         return None
-
 
 
 @app.route('/upload', methods=['POST'])
@@ -863,7 +867,7 @@ def upload_file():
 
     try:
         file.save(input_path)
-        result_url = predict_yolov8(input_path, file)
+        result_url = predict_yolov11x(input_path, file)
 
         if not result_url:
             return jsonify({'error': 'Prediction failed'}), 500
