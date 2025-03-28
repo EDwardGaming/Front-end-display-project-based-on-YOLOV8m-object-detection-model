@@ -1,55 +1,62 @@
 import torch
 from ultralytics import YOLO
-import torch.multiprocessing as mp
 
-# 加载预训练的 YOLOv8 模型
-model = YOLO(r"E:\education\road_snow\yolov11m\yolo11m.pt")  # 这里可以根据你的需求替换为其他版本的 YOLO 模型
+def main():
+    # 初始化模型（加载预训练权重）
+    model = YOLO(r"E:\education\road_snow\yolov11m\yolo11m.pt")
 
-# 配置训练参数
-train_args = {
-    'data': 'yolov11m.yaml',  # 数据集配置文件路径
-    'epochs': 100,  # 训练的轮数
-    'batch': 24,  # 每个批次的大小，适当调整（16到32之间）
-    'imgsz': 640,  # 输入图像的大小
-    'device': '0',  # 使用 GPU 训练，如果没有 GPU 可以改为 'cpu'
-    'project': 'runs/detect',  # 存储训练结果的目录
-    'name': 'train3',  # 训练结果保存的子目录
-    'save': True,  # 是否保存模型
-    'save_period': -1,  # 每隔多少轮保存一次模型
-    'verbose': True,  # 是否打印详细日志
-    'workers': 0,  # 数据加载器的工作线程数
-    'optimizer': 'AdamW',  # 这里选择自动，还可以选择 AdamW 优化器
-    
-    'lr0': 0.001,  # 初始学习率，适当降低初始学习率，增加学习率衰减率。
-    'lrf': 0.01,  # 学习率衰减率，更激进，加快收敛。
-    
-    'warmup_epochs': 3,  # 预热的轮数，适当降低预热时间
-    'box': 5.0,  # 训练的框回归损失权重，越低越平衡归框任务。
-    'cls': 1.0,  # 类别损失权重，越高越强化分类任务
-    'dfl': 2.0,  # 关键点损失权重
-    'pose': 12.0,  # 姿态估计损失权重
-    'nbs': 64,  # 批次大小（此参数不会影响实际训练，但用于计算资源）
-    'weight_decay' : 0.01,  # 权重衰减
-    
-    'split': "0.8 0.2",  # 训练集和验证集的比例
-    
-    'warmup_epochs': 3,
-    'label_smoothing': 0.05,  # 标签平滑
-       
-    'close_mosaic': 15, # 最后15epoch关闭mosaic（稳定收敛）
-    'augment': True,
-    
-    'patience': 10,  # 早停策略的耐心值，连续10个epoch验证集性能无提升则停止训练
+    # 训练参数配置（大目标召回率优化版）
+    train_args = {
+        # ===== 数据配置 =====
+        'data': 'yolov11m.yaml',  # 数据集配置文件路径
+        
+        # ===== 核心训练参数 =====
+        'epochs': 150,       # [100-300] 总训练轮次。调大：更充分学习大目标特征；调小：可能欠拟合
+        'batch': 24,         # [8-32] 批次大小。调大：稳定训练但需更大显存；调小：适合高分辨率训练
+        'imgsz': 640,       # [640-1280] 输入分辨率。调大：提升大目标细节捕捉能力；调小：加快训练速度
+        'device': '0',       # 使用GPU训练
+        
+        # ===== 优化器配置 =====
+        'optimizer': 'AdamW',# 优化器选择。AdamW适合小批量数据，SGD更适合大批量
+        'lr0': 0.001,        # [0.0005-0.002] 初始学习率。调大：加速收敛但可能震荡；调小：稳定但收敛慢
+        'lrf': 0.01,         # [0.005-0.05] 最终学习率=lr0*lrf。调大：更快衰减；调小：保持后期学习能力
+        'weight_decay': 0.005,# [0.001-0.01] 权重衰减。调大：防止过拟合；调小：模型容量更大
+        
+        # ===== 损失函数权重 =====
+        'box': 10.0,         # [7.0-15.0] 定位损失权重。调大：增强大目标框体回归；调小：侧重分类任务
+        'cls': 0.5,          # [0.3-1.0] 分类损失权重。调大：提高分类精度；调小：降低误检惩罚
+        'dfl': 1.8,          # [1.5-2.5] 分布焦点损失。调大：提升边界预测；调小：降低分布约束
+        
+        # ===== 训练策略 =====
+        'warmup_epochs': 15, # [10-20] 学习率预热。调大：稳定大目标初期学习；调小：快速进入正常训练
+        'label_smoothing': 0.1,# [0.0-0.2] 标签平滑。调大：防止过拟合；调小：保持原始标签置信度
+        'close_mosaic': 15,  # [10-20] 最后关闭mosaic的轮次。调大：更晚关闭增强；调小：提前稳定训练
+        'patience': 30,      # [20-50] 早停等待。调大：给大目标充分收敛时间；调小：快速停止
+        
+        # ===== 工程优化 =====
+        'workers': 0,        # Windows必须设为0
+        'amp': True,         # 混合精度训练。节省30%显存
+        'project': 'runs/detect',
+        'name': 'snow_v5_largefocus',
+        
+        # ===== 高级配置 =====
+        'overlap_mask': True, # 增强掩模重叠处理（针对大面积目标）
+        #'image_weights': True # 启用困难样本加权采样（平衡大小目标）
+    }
 
-    'persist': True,  # **保持预处理状态加速训练**
-    'amp': True,      # **启用自动混合精度**
-}
+    # 打印配置
+    print("============ 训练配置 ============")
+    for k, v in train_args.items():
+        print(f"{k:20s} : {v}")
 
-# 打印训练参数
-print(train_args)
+    # 启动训练
+    results = model.train(**train_args)
 
-# 训练模型
-train_results = model.train(**train_args)
+    # 输出关键指标
+    print("\n============ 训练结果 ============")
+    print(f"大目标召回率: {results.results_dict['metrics/recall(B)']:.3f}")
+    print(f"小目标召回率: {results.results_dict['metrics/recall(S)']:.3f}")
 
-# 输出训练结果
-print(train_results)
+if __name__ == "__main__":
+    torch.multiprocessing.freeze_support()
+    main()
