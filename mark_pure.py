@@ -1,10 +1,7 @@
 # 该脚本实现划分未标注dataset为训练集目录的功能
-
 import os
 import shutil
 import random
-
-
 
 # 定义类别和 class_id
 categories = {

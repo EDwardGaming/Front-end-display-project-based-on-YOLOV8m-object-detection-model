@@ -1,3 +1,15 @@
+---
+title: 基于yolov8m物体检测模型的前端展示项目
+date: 2025-02-04 22:31:07
+tags:
+  - 计算机视觉
+  - 机器学习
+  - Yolo
+  - python
+categories:
+  - 人工智能
+comments: true
+---
 # 基于yolov8m物体检测模型的前端展示项目
 
 ## 大纲

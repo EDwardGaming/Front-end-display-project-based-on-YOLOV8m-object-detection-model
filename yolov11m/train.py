@@ -11,8 +11,8 @@ def main():
         'data': 'yolov11m.yaml',  # 数据集配置文件路径
         
         # ===== 核心训练参数 =====
-        'epochs': 150,       # [100-300] 总训练轮次。调大：更充分学习大目标特征；调小：可能欠拟合
-        'batch': 24,         # [8-32] 批次大小。调大：稳定训练但需更大显存；调小：适合高分辨率训练
+        'epochs': 100,       # [100-300] 总训练轮次。调大：更充分学习大目标特征；调小：可能欠拟合
+        'batch': 20,         # [8-32] 批次大小。调大：稳定训练但需更大显存；调小：适合高分辨率训练
         'imgsz': 640,       # [640-1280] 输入分辨率。调大：提升大目标细节捕捉能力；调小：加快训练速度
         'device': '0',       # 使用GPU训练
         
@@ -31,7 +31,7 @@ def main():
         'warmup_epochs': 15, # [10-20] 学习率预热。调大：稳定大目标初期学习；调小：快速进入正常训练
         'label_smoothing': 0.1,# [0.0-0.2] 标签平滑。调大：防止过拟合；调小：保持原始标签置信度
         'close_mosaic': 15,  # [10-20] 最后关闭mosaic的轮次。调大：更晚关闭增强；调小：提前稳定训练
-        'patience': 30,      # [20-50] 早停等待。调大：给大目标充分收敛时间；调小：快速停止
+        'patience': 20,      # [20-50] 早停等待。调大：给大目标充分收敛时间；调小：快速停止
         
         # ===== 工程优化 =====
         'workers': 0,        # Windows必须设为0
@@ -54,8 +54,8 @@ def main():
 
     # 输出关键指标
     print("\n============ 训练结果 ============")
-    print(f"大目标召回率: {results.results_dict['metrics/recall(B)']:.3f}")
-    print(f"小目标召回率: {results.results_dict['metrics/recall(S)']:.3f}")
+    print(f"雪召回率: {results.results_dict['metrics/recall(snow)']:.3f}")
+    print(f"冰召回率: {results.results_dict['metrics/recall(ice)']:.3f}")
 
 if __name__ == "__main__":
     torch.multiprocessing.freeze_support()
