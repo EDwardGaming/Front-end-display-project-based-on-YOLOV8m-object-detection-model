@@ -1,7 +1,7 @@
 from DangerDetectApi import DangerDetector
 
-model_path = r"E:\education\road_snow\yolov11m\runs\detect\train38\weights\best.pt" # 模型路径
-conf_threshold = 0.5 # 置信度阈值
+model_path = r"E:\education\road_snow\yolov11m\runs\detect\yolov11m_snow_large4\weights\best.pt" 
+conf_threshold = 0.2 # 置信度阈值
 
 # 初始化检测器
 detector = DangerDetector(model_path,conf_threshold)

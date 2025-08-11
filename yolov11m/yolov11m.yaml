@@ -1,25 +1,6 @@
-# 数据集配置
-path: E:\education\road_snow\training_set
-train:  E:\education\road_snow\training_set\images  # 建议预先划分训练集
-val: E:\education\road_snow\training_set\images      # 建议预先划分验证集
+path: ../training_set
+train:  autosplit_train.txt
+val:    autosplit_val.txt
+
 nc: 2
 names: ['snow', 'ice']
-
-# 数据增强专项配置
-augmentations:
-  # === 大目标优化 ===
-  mosaic: 1.0        # 全程开启增强多尺度感知（大目标需要多尺度上下文）
-  mixup: 0.2         # 降低混合比例（避免大面积目标被过度混合）
-  degrees: 5.0       # 小幅旋转（增强旋转鲁棒性但不破坏大目标结构）
-  shear: 0.05        # 最小化剪切变形（保持大面积目标完整性）
-  scale: [0.9, 1.1]  # 缩小缩放范围（保持大目标主要尺寸特征）
-
-  # === 小目标平衡 ===
-  copy_paste: 0.3    # 适当提高小目标复制概率
-  hsv_h: 0.02        # 保持轻微色调变化
-  hsv_s: 0.6         # 增强饱和度对比（帮助区分雪与路面）
-  fliplr: 0.5        # 保持水平翻转
-
-  # === 新增增强 ===
-  perspective: 0.0005  # 极轻微透视变换（模拟无人机视角变化）
-  translate: 0.1       # 平移增强（提升边缘目标检测）
