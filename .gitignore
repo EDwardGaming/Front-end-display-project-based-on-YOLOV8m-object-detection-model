@@ -1,0 +1,8 @@
+# 忽略以下文件夹
+
+datasets/
+datasets_coco/
+hyperparameter_results_20251009_221725/
+hyperparameter_results_20251013_112307/
+runs/
+ultralytics/

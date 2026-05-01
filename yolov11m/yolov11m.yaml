@@ -1,6 +1,0 @@
-path: ../training_set
-train:  autosplit_train.txt
-val:    autosplit_val.txt
-
-nc: 2
-names: ['snow', 'ice']
